@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amaru App · Prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: cálida, clara y de campo; una guía de bolsillo del bioparque.
+   IDEA: el sendero-serpiente (Amaru = serpiente en kichwa) que recorre el bioparque y une todas las pantallas.
+   PICTURE: el teléfono con la app funcionando; dentro, un mapa ilustrado de la ladera con el sendero.
+   COLOUR and TYPE: verde bosque andino dominante, crema de papel, ocre sol como acento; Poppins + Inter.
+   LAYOUT: panel de pantallas a la izquierda, teléfono a la derecha; en móvil la app ocupa la pantalla. */
+:root{color-scheme:light dark;--pg:light-dark(#E9E2D2,#0F1F18);--pgink:light-dark(#1A2620,#E8EFE9);--pgmute:light-dark(#55625A,#A9B8AE);--pgcard:light-dark(#F7F2E7,#173126);
+--forest:#173F2F;--leaf:#2F7A4F;--moss:#9DC08B;--sun:#F2A531;--clay:#C4532F;--cream:#FAF6EE;--sand:#EFE7D6;--ink:#1A2620;--mute:#56645B;--line:#E3DACA;
+--andes:#5B7FB8;--amaz:#2F8A57;--costa:#2493AE;--africa:#C98A1C;--herp:#6E9F2E;--avi:#C4532F}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--pg);color:var(--pgink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,16px);display:grid;grid-template-columns:minmax(0,1fr) 414px;gap:clamp(24px,4vw,56px);align-items:start}
+.side h1{font:700 clamp(30px,4vw,44px)/1.05 Poppins,sans-serif;margin:0 0 12px;text-wrap:balance}
+.side p{color:var(--pgmute);max-width:60ch;margin:0 0 18px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:18px 0}
+.list button{all:unset;cursor:pointer;background:var(--pgcard);border-radius:12px;padding:10px 12px;min-height:44px;font-size:14px;display:flex;gap:10px;align-items:center}
+.list button b{font:600 12px Poppins,sans-serif;color:var(--pgmute);width:18px}
+.list button.on{outline:2px solid var(--leaf)}
+.list button:focus-visible,.tg:focus-visible{outline:3px solid var(--sun)}
+.tg{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:10px;background:var(--pgink);color:var(--pg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;min-height:24px}
+.note{font-size:13px;color:var(--pgmute);margin-top:18px}
+.phone{position:sticky;top:20px;width:414px;height:868px;border-radius:56px;background:#0d0d0d;padding:12px;box-shadow:0 30px 60px -20px rgba(0,0,0,.45)}
+@media(max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.phone{position:relative;top:0;margin:0 auto;order:-1}}
+@media(max-width:460px){.wrap{padding:0 0 24px}.phone{width:100%;height:100dvh;border-radius:0;padding:0;box-shadow:none}.side{padding:0 16px}#app{border-radius:0!important}}
+/* ---------- APP ---------- */
+#app{--k:1;position:relative;width:100%;height:100%;border-radius:44px;overflow:hidden;background:var(--cream);color:var(--ink);font-size:calc(15px*var(--k));font-family:Inter,system-ui,sans-serif;line-height:1.45;color-scheme:light}
+#app.hc{--mute:#1A2620;--line:#8E8676}
+#app.big{--k:1.15}
+.sb{position:absolute;top:0;left:0;right:0;height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 28px 0 34px;font:600 14px Inter,sans-serif;z-index:30;pointer-events:none}
+.sb.lt{color:#fff}
+.i{width:1.35em;height:1.35em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;background:var(--cream)}
+.scr.on{display:flex}
+.hd{padding:52px 18px 10px;display:flex;align-items:center;gap:10px;background:var(--cream)}
+.hd h2{font:600 1.3em/1.2 Poppins,sans-serif;margin:0;flex:1}
+.ib{all:unset;cursor:pointer;width:2.7em;height:2.7em;border-radius:50%;display:grid;place-items:center;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.ib:focus-visible,.btn:focus-visible,.chip:focus-visible,.card:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.bd{flex:1;overflow-y:auto;padding:4px 18px 110px;scrollbar-width:none}
+.bd::-webkit-scrollbar{display:none}
+h3{font:600 1.08em/1.25 Poppins,sans-serif;margin:20px 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+h3 a{font:600 .8em Inter,sans-serif;color:var(--leaf);cursor:pointer}
+.mute{color:var(--mute)}.sm{font-size:.85em}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:2.9em;padding:0 18px;border-radius:14px;font-weight:600;background:var(--forest);color:#fff;text-align:center}
+.btn.alt{background:#fff;color:var(--forest);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.sun{background:var(--sun);color:var(--ink)}
+.btn.w{width:100%;box-sizing:border-box}
+.card{background:#fff;border-radius:18px;padding:14px;box-shadow:0 1px 2px rgba(23,63,47,.06),0 4px 14px -6px rgba(23,63,47,.12)}
+.row{display:flex;gap:10px;align-items:center}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px;margin:0 -18px;padding-inline:18px}
+.chip{all:unset;cursor:pointer;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:2.4em;border-radius:999px;background:#fff;font-size:.88em;font-weight:600;box-shadow:inset 0 0 0 1.5px var(--line)}
+.chip.on{background:var(--forest);color:#fff;box-shadow:none}
+.dot{width:.7em;height:.7em;border-radius:50%;flex:none}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:.75em;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--sand)}
+.ph{position:relative;border-radius:14px;display:grid;place-items:center;overflow:hidden}
+.emo{font-size:2.6em;line-height:1}
+.srch{display:flex;align-items:center;gap:8px;background:#fff;border-radius:14px;padding:0 12px;height:2.9em;box-shadow:inset 0 0 0 1.5px var(--line)}
+.srch input{all:unset;flex:1;font-size:16px}
+.tab{position:absolute;left:0;right:0;bottom:0;height:84px;background:#fff;display:flex;justify-content:space-around;padding:8px 6px 26px;box-shadow:0 -1px 0 var(--line);z-index:20}
+.tab button{all:unset;cursor:pointer;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.72em;font-weight:600;color:var(--mute)}
+.tab button.on{color:var(--forest)}
+.tab button.on .i{background:#E3EEDC;border-radius:999px;padding:3px 14px;width:3.4em;box-sizing:content-box;height:1.35em}
+.tab button:focus-visible{outline:3px solid var(--sun)}
+.toast{position:absolute;left:18px;right:18px;bottom:100px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:14px;font-size:.88em;z-index:40;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+/* home */
+.hero{position:relative;border-radius:22px;overflow:hidden;background:var(--forest);color:#fff;min-height:200px;padding:18px}
+.hero>svg{position:absolute;inset:0;width:100%;height:100%}
+.hero>div{position:relative}
+.open{display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.16);padding:4px 10px;border-radius:999px;font-size:.8em;font-weight:600}
+.open i{width:8px;height:8px;border-radius:50%;background:#7CE08A}
+.qa{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+.qa button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.76em;font-weight:600;text-align:center}
+.qa span{width:3.6em;height:3.6em;border-radius:18px;display:grid;place-items:center;background:#fff;color:var(--forest);box-shadow:0 2px 8px -3px rgba(23,63,47,.25)}
+.hs{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -18px;padding:2px 18px 6px;scrollbar-width:none}
+.hs>*{scroll-snap-align:start;flex:none}
+.ev{width:12.5em}
+.time{font:700 1.25em Poppins,sans-serif;color:var(--forest)}
+/* list rows */
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.li:last-child{border:0}
+.lic{width:2.6em;height:2.6em;border-radius:12px;display:grid;place-items:center;background:#E3EEDC;color:var(--forest);flex:none}
+.li .t{flex:1}.li b{display:block;font-weight:600}
+.sw{width:2.8em;height:1.6em;border-radius:999px;background:#C9C2B3;position:relative;flex:none;transition:.2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:calc(1.6em - 6px);height:calc(1.6em - 6px);border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--leaf)}.sw.on::after{left:calc(100% - 1.6em + 3px)}
+/* animals */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.an{padding:8px;cursor:pointer}
+.an .ph{height:7.2em;margin-bottom:8px}
+.an b{display:block;font-weight:600;line-height:1.2}
+.st{position:absolute;top:6px;right:6px;font-size:.68em;font-weight:800;padding:2px 6px;border-radius:6px;background:#fff}
+.VU{color:#B5651D}.EN{color:#C4532F}.NT{color:#8A7A1F}.LC{color:var(--leaf)}.DO{color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.stats div{background:#fff;border-radius:14px;padding:10px;text-align:center}
+.stats b{display:block;font:600 1em Poppins,sans-serif}
+.stats span{font-size:.75em;color:var(--mute)}
+/* map */
+.mapw{position:absolute;inset:0;background:#D5E3C2;overflow:hidden;touch-action:none}
+.mapw svg.m{position:absolute;left:0;top:0;width:100%;height:100%}
+.mtop{position:absolute;top:50px;left:14px;right:14px;z-index:5}
+.mtop .srch{box-shadow:0 4px 14px -4px rgba(0,0,0,.2)}
+.mtop .chips{margin:8px -14px 0;padding-inline:14px}
+.mtop .chip{box-shadow:0 2px 6px -2px rgba(0,0,0,.2)}
+.res{background:#fff;border-radius:14px;margin-top:6px;box-shadow:0 8px 20px -6px rgba(0,0,0,.25);max-height:220px;overflow:auto}
+.res div{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;align-items:center}
+.zbtn{position:absolute;right:14px;bottom:250px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:84px;background:#fff;border-radius:22px 22px 0 0;padding:10px 18px 16px;z-index:6;box-shadow:0 -8px 24px -10px rgba(0,0,0,.25)}
+.sheet::before{content:"";display:block;width:40px;height:5px;border-radius:9px;background:#D8D1C2;margin:0 auto 10px}
+.leg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:.8em}
+.leg div{display:flex;gap:8px;align-items:center}
+.pk{width:1.9em;height:1.9em;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.75em;flex:none}
+.pk .i{width:1.1em;height:1.1em;stroke-width:2.4}
+.zl{font:700 11px Poppins,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round}
+.poi{cursor:pointer}
+.poi.dim{opacity:.15}
+.you{animation:pulse 2s infinite}
+@keyframes pulse{0%{r:8;opacity:.6}100%{r:22;opacity:0}}
+@media(prefers-reduced-motion:reduce){.you{animation:none}.toast{transition:none}}
+/* splash */
+.spl{background:var(--forest);color:#fff;justify-content:space-between;padding:90px 26px 46px}
+.spl h1{font:700 2.6em/1.02 Poppins,sans-serif;margin:18px 0 10px}
+/* ---------- WIREFRAME MODE ---------- */
+#app.wire,#app.wire .scr,#app.wire .hd,#app.wire .tab,#app.wire .spl{background:#fff!important;color:#333!important}
+#app.wire *{font-family:Inter,sans-serif!important;color:#444!important;box-shadow:none!important}
+#app.wire .card,#app.wire .btn,#app.wire .chip,#app.wire .srch,#app.wire .ib,#app.wire .qa span,#app.wire .stats div,#app.wire .sheet,#app.wire .res,#app.wire .hero,#app.wire .lic,#app.wire .badge,#app.wire .open{background:#fff!important;border:1.5px solid #8a8a8a!important}
+#app.wire .btn{background:#e6e6e6!important}
+#app.wire .chip.on,#app.wire .tab button.on .i{background:#d0d0d0!important}
+#app.wire .ph,#app.wire .hero{background:linear-gradient(to top right,transparent calc(50% - 1px),#aaa,transparent calc(50% + 1px)),linear-gradient(to bottom right,transparent calc(50% - 1px),#aaa,transparent calc(50% + 1px)),#efefef!important;border:1.5px solid #8a8a8a!important}
+#app.wire .emo,#app.wire .hero>svg,#app.wire .spl svg.art{visibility:hidden}
+#app.wire .dot,#app.wire .pk,#app.wire .sw{background:#bbb!important}
+#app.wire h1,#app.wire h2,#app.wire h3,#app.wire b,#app.wire .time{color:#222!important}
+#app.wire .mapw{background:#f4f4f4!important}
+#app.wire .m .bgf{fill:#f4f4f4}#app.wire .m .ctr{stroke:#ddd}
+#app.wire .m .zone{fill:#fff!important;stroke:#888!important;stroke-dasharray:4 3}
+#app.wire .m .trail{stroke:#999!important}#app.wire .m .trail2{stroke:#bbb!important}
+#app.wire .m .pc{fill:#fff!important;stroke:#666!important}#app.wire .m .pg{stroke:#444!important;fill:none}#app.wire .m text{fill:#333!important}
+#app.wire .m .road{fill:#ddd}#app.wire .m .lot{fill:#eee;stroke:#999}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="side">
+    <h1>Amaru Bioparque: prototipo de la app para visitantes</h1>
+    <p>Prototipo navegable de la propuesta de interfaz. Toca los botones dentro del teléfono como en una app real, o salta a cualquier pantalla desde esta lista. El interruptor muestra la misma pantalla en versión wireframe (baja fidelidad).</p>
+    <button class="tg" id="wt" aria-pressed="false">Ver como wireframe</button>
+    <div class="list" id="list"></div>
+    <p class="note">Propuesta académica de diseño de interfaz. Datos institucionales tomados de fuentes públicas (horario 9:00–18:00, tarifa adulto USD 9, adulto mayor USD 4,50, teléfonos y redes oficiales); la distribución del mapa, los horarios de charlas y las distancias son referenciales y deben validarse con el bioparque. Las imágenes de animales son marcadores de posición que se reemplazarán con fotografías propias.</p>
+  </div>
+  <div class="phone"><div id="app">
+    <div class="sb" id="sb"><span>9:41</span><span>●●● 5G ▮</span></div>
+    <div id="screens"></div>
+    <nav class="tab" id="tab" aria-label="Navegación principal"></nav>
+    <div class="toast" id="toast" role="status"></div>
+  </div></div>
+</div>
+<script>
+{
+const IC={
+home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+paw:'<circle cx="7" cy="9" r="1.8"/><circle cx="11" cy="5.5" r="1.8"/><circle cx="16" cy="6.5" r="1.8"/><circle cx="19" cy="11" r="1.6"/><path d="M8 17c0-3 2.5-5.5 5-5.5s4.5 2 4.5 4.5-2 3.5-4.5 3.5S8 20 8 17z"/>',
+map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/>',
+cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+more:'<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>',
+menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ticket:'<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/>',
+info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+phone:'<path d="M5 4h3l2 5-2.2 1.4a11 11 0 0 0 5.8 5.8L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+food:'<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3M17 21V3c-2 0-3.5 2.5-3.5 6s1.5 4 3.5 4"/>',
+cross:'<path d="M12 5v14M5 12h14"/>',
+bench:'<path d="M4 11h16M6 11v7M18 11v7M4 15h16M6 6h12v5H6z"/>',
+in:'<path d="M14 4h5v16h-5M3 12h11M10 8l4 4-4 4"/>',
+out:'<path d="M10 4H5v16h5M9 12h12M17 8l4 4-4 4"/>',
+back:'<path d="M15 5l-7 7 7 7"/>',
+chev:'<path d="M9 6l6 6-6 6"/>',
+pin:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M6 17V10a3 3 0 0 1 3-3h3M18 7v7a3 3 0 0 1-3 3h-3"/>',
+heart:'<path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.3 12 20 12 20z"/>',
+eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+bag:'<path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/>',
+leaf:'<path d="M5 20c0-9 6-15 15-15 0 9-6 15-15 15zM5 20l8-8"/>',
+moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+acc:'<circle cx="12" cy="4.5" r="1.6"/><path d="M5 8.5h14M12 8.5v5l-3.5 7M12 13.5l3.5 7"/>',
+mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+cam:'<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17 7v.1"/>',
+drop:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+mount:'<path d="M3 20 9 9l4 6 3-4 5 9z"/>',
+nav:'<path d="M12 2l7 19-7-4-7 4z"/>',
+users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/>',
+alert:'<path d="M12 3 2 20h20zM12 10v4M12 17v.1"/>',
+audio:'<path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',
+layers:'<path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5"/>',
+x:'<path d="M6 6l12 12M18 6 6 18"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+car:'<path d="M5 16V11l2-5h10l2 5v5M3 16h18v3H3zM7 19v1M17 19v1"/>',
+text:'<path d="M4 7V5h16v2M12 5v14M9 19h6"/>',
+contrast:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/>',
+share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>'};
+const ic=(n,c='')=>`<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]||''}</svg>`;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const REG={andes:['Andes','var(--andes)','#DCE5F3'],amaz:['Amazonía','var(--amaz)','#D7EEDF'],costa:['Costa y Galápagos','var(--costa)','#D3EDF3'],africa:['África','var(--africa)','#F6E8CC'],herp:['Ranario y reptiles','var(--herp)','#E4F0D2'],avi:['Aviario tropical','var(--avi)','#F6DDD3']};
+const ST={VU:'Vulnerable',EN:'En peligro',NT:'Casi amenazada',LC:'Preocupación menor',DO:'Doméstica'};
+const AN=[
+{id:'oso',n:'Oso andino',s:'Tremarctos ornatus',r:'andes',st:'VU',e:'🐻',w:'60–175 kg',d:'Omnívoro',h:'Bosque nublado y páramo',x:[240,212],
+ a:'Es la única especie de oso de Sudamérica. Cada individuo tiene un patrón de manchas claras en el rostro, tan único como una huella digital. Se alimenta sobre todo de bromelias, frutos y brotes, y es clave para dispersar semillas en los bosques andinos.',
+ m:'En el bioparque nacieron tres oseznos bajo cuidado humano, un logro para la conservación de la especie en el Ecuador.',t:'Sáb y dom · 11:30'},
+{id:'condor',n:'Cóndor andino',s:'Vultur gryphus',r:'andes',st:'VU',e:'🦅',w:'8–15 kg',d:'Carroñero',h:'Cordillera y páramo',x:[278,250],
+ a:'Ave nacional del Ecuador y una de las aves voladoras más grandes del mundo: su envergadura supera los 3 metros. Planea durante horas aprovechando las corrientes de aire.',
+ m:'Amaru cuida cóndores rescatados, entre ellos Valentino, y participa en su rehabilitación.',t:'Sáb y dom · 11:00'},
+{id:'puma',n:'Puma',s:'Puma concolor',r:'andes',st:'LC',e:'🐆',w:'35–70 kg',d:'Carnívoro',h:'Bosques y páramo',x:[212,244],a:'Felino de gran adaptabilidad que habita desde la costa hasta los páramos. Es solitario y muy ágil: puede saltar más de 5 metros.',m:'Los pumas del bioparque llegaron por rescate y tenencia ilegal.',t:'Sáb y dom · 16:00'},
+{id:'alpaca',n:'Alpaca',s:'Vicugna pacos',r:'andes',st:'DO',e:'🦙',w:'48–90 kg',d:'Herbívoro',h:'Altiplano andino',x:[205,205],a:'Camélido doméstico de los Andes, criado desde hace miles de años por su fibra suave y abrigada.',m:'Zona de observación cercana, ideal para niños.',t:'Todos los días'},
+{id:'jaguar',n:'Jaguar',s:'Panthera onca',r:'amaz',st:'NT',e:'🐆',w:'56–96 kg',d:'Carnívoro',h:'Selva amazónica',x:[112,282],a:'El felino más grande de América. Es excelente nadador y su mordida es de las más fuertes entre los felinos.',m:'Habita un recinto con vegetación densa que imita la selva.',t:'Sáb · 14:30'},
+{id:'tapir',n:'Tapir',s:'Tapirus sp.',r:'amaz',st:'VU',e:'🐾',w:'150–300 kg',d:'Herbívoro',h:'Selva y bosque húmedo',x:[72,318],a:'Llamado “jardinero del bosque” porque dispersa semillas a lo largo de grandes distancias. Su trompa flexible le ayuda a alcanzar hojas y frutos.',m:'Charla de fin de semana sobre su papel en el bosque.',t:'Sáb y dom · 14:00'},
+{id:'leon',n:'León africano',s:'Panthera leo',r:'africa',st:'VU',e:'🦁',w:'120–190 kg',d:'Carnívoro',h:'Sabana africana',x:[118,132],a:'Es el único felino que vive en grupos familiares llamados manadas. Su rugido se escucha a varios kilómetros.',m:'Los leones de Amaru provienen de rescates y no se reproducen en el bioparque.',t:'Sáb y dom · 12:30'},
+{id:'avestruz',n:'Avestruz',s:'Struthio camelus',r:'africa',st:'LC',e:'🐦',w:'63–145 kg',d:'Omnívoro',h:'Sabana y desierto',x:[168,150],a:'El ave más grande y pesada del mundo. No vuela, pero corre a más de 60 km/h.',m:'Comparte la bioregión de África con los leones.',t:'Todos los días'},
+{id:'tortuga',n:'Tortuga gigante',s:'Chelonoidis sp.',r:'costa',st:'EN',e:'🐢',w:'Hasta 250 kg',d:'Herbívoro',h:'Islas Galápagos',x:[262,372],a:'Símbolo de Galápagos. Puede vivir más de 100 años y pasar meses sin comer ni beber.',m:'Espacio educativo sobre la conservación en las islas.',t:'Dom · 15:30'},
+{id:'piquero',n:'Piquero patas azules',s:'Sula nebouxii',r:'costa',st:'LC',e:'🐦',w:'1,5 kg',d:'Piscívoro',h:'Costa e islas',x:[296,392],a:'Famoso por su danza de cortejo, en la que el macho muestra sus patas azules. Se lanza en picada al mar para pescar.',m:'Parte del recorrido de Costa y Galápagos.',t:'Todos los días'},
+{id:'rana',n:'Rana marsupial',s:'Gastrotheca sp.',r:'herp',st:'EN',e:'🐸',w:'Menos de 30 g',d:'Insectívoro',h:'Humedales andinos',x:[96,400],a:'La hembra lleva los huevos en una bolsa en su espalda hasta que nacen pequeñas ranitas. Es muy sensible a la contaminación del agua.',m:'Amaru liberó ranas rescatadas en Cuenca en un humedal del propio bioparque.',t:'Sáb · 10:30'},
+{id:'boa',n:'Boa constrictora',s:'Boa constrictor',r:'herp',st:'LC',e:'🐍',w:'10–15 kg',d:'Carnívoro',h:'Bosques tropicales',x:[132,420],a:'No es venenosa: atrapa a sus presas por constricción. Las serpientes dan nombre al bioparque: “amaru” significa serpiente en kichwa.',m:'Charla “Serpientes: mitos y verdades”.',t:'Sáb y dom · 15:00'},
+{id:'aguila',n:'Águila pechinegra',s:'Geranoaetus melanoleucus',r:'avi',st:'LC',e:'🦅',w:'1,7–3 kg',d:'Carnívoro',h:'Páramos y valles',x:[64,268],a:'Gran rapaz de los Andes que caza en vuelo desde las alturas. Su silueta tiene una cola corta característica.',m:'Participa en la exhibición “Rapaces en vuelo”.',t:'Sáb y dom · 10:00'},
+{id:'guacamayo',n:'Guacamayo',s:'Ara sp.',r:'avi',st:'LC',e:'🦜',w:'1 kg',d:'Frugívoro',h:'Selva amazónica',x:[48,296],a:'Loros de gran tamaño y colores intensos, muy inteligentes y sociales. Son víctimas frecuentes del tráfico ilegal.',m:'Se observa en el aviario tropical.',t:'Sáb y dom · 15:30'}];
+
+// Puntos de servicio del mapa  [id, nombre, categoría, x, y, etiqueta/icono, color, descripción]
+const SV=[
+['entrada','Entrada principal','acc',178,503,'in','#173F2F','Boletería y control de ingreso.'],
+['salida','Salida','acc',236,505,'out','#173F2F','Salida hacia el parqueadero y la autopista.'],
+['parq','Parqueadero','acc',62,512,'P','#3D5A80','Parqueadero de visitantes junto a la autopista.'],
+['info1','Información y boletería','info',204,472,'info','#2493AE','Mapas, préstamo de bastones y objetos perdidos.'],
+['aux','Primeros auxilios','info',148,482,'cross','#C4532F','Atención básica. Emergencias: 911.'],
+['cafe','Cafetería del Auditorio Amaru','food',170,446,'food','#C98A1C','Café, bebidas y comida ligera.'],
+['snack','Snack del Mirador','food',262,86,'food','#C98A1C','Bebidas y snacks con vista a Cuenca.'],
+['wc1','Baños del ingreso','wc',126,462,'WC','#5B7FB8','Incluye baño accesible y cambiador de bebés.'],
+['wc2','Baños Amazonía','wc',40,350,'WC','#5B7FB8','Baños a mitad del recorrido.'],
+['wc3','Baños del Mirador','wc',318,142,'WC','#5B7FB8','Baños en la parte alta del bioparque.'],
+['d1','Zona de descanso Ranario','rest',160,362,'bench','#6E9F2E','Bancas a la sombra.'],
+['d2','Zona de descanso África','rest',196,168,'bench','#6E9F2E','Bancas y punto de agua.'],
+['d3','Zona de descanso Galápagos','rest',318,320,'bench','#6E9F2E','Bancas con vista al valle.'],
+['info2','Punto de información Andes','info',176,262,'info','#2493AE','Guías del bioparque en fines de semana.'],
+['tienda','Tienda de recuerdos','info',212,440,'bag','#2493AE','Recuerdos; parte de las ventas apoya la conservación.'],
+['mir','Mirador de Cuenca','rest',296,100,'eye','#6E9F2E','La mejor vista de la ciudad desde el bioparque.']];
+const CATS=[['all','Todo'],['an','Animales'],['wc','Baños'],['food','Comida'],['rest','Descanso'],['info','Información y salud'],['acc','Accesos']];
+
+const DZ=.98,DPY=-58;const S={cur:'home',hist:[],an:'oso',reg:'all',q:'',cat:'all',sel:null,z:DZ,px:0,py:DPY,fav:{},audio:false,big:false,hc:false};
+const $=id=>document.getElementById(id);
+const toast=m=>{const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2200)};
+const hd=(t,back=true,right='')=>`<div class="hd">${back?`<button class="ib" data-back aria-label="Volver">${ic('back')}</button>`:''}<h2>${t}</h2>${right}</div>`;
+const animalPh=(a,h)=>`<div class="ph" style="background:${REG[a.r][2]};${h?'height:'+h:''}"><span class="emo" ${h?'style="font-size:5em"':''}>${a.e}</span><span class="st ${a.st}">${a.st}</span></div>`;
+
+const SCREENS={
+splash:{t:'Bienvenida',tab:false,r:()=>`<div class="scr spl" id="s-splash">
+ <div><svg class="art" viewBox="0 0 80 80" width="84" height="84" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="#F2A531"/><path d="M18 52c0-10 22-6 22-16s-18-8-14-18c3-6 14-6 20 0" fill="none" stroke="#173F2F" stroke-width="7" stroke-linecap="round"/><circle cx="47" cy="18" r="5" fill="#173F2F"/><circle cx="48.5" cy="17" r="1.3" fill="#F2A531"/></svg>
+ <h1>Amaru<br>Bioparque Cuenca</h1><p style="opacity:.85;margin:0;max-width:24em">Tu guía para recorrer 9 hectáreas de senderos, conocer a más de 160 especies y encontrar todo lo que necesitas durante la visita.</p></div>
+ <svg class="art" viewBox="0 0 340 150" style="width:100%" aria-hidden="true"><path d="M0 150V90l60-50 50 40 60-60 70 60 40-30 60 50v50z" fill="#1F5A40"/><path d="M0 150v-30l80-30 80 30 90-40 90 40v30z" fill="#2F7A4F"/><path d="M20 140c60-10 40-40 100-40s50 30 110 20 60-30 90-30" fill="none" stroke="#F2A531" stroke-width="5" stroke-dasharray="1 10" stroke-linecap="round"/></svg>
+ <div><button class="btn sun w" data-go="home">Comenzar recorrido</button>
+ <div class="row" style="justify-content:center;margin-top:14px;gap:8px"><button class="chip on" data-lang="es">Español</button><button class="chip" data-lang="en" style="background:transparent;color:#fff">English</button></div></div></div>`},
+home:{t:'Inicio',tab:'home',r:()=>`<div class="scr" id="s-home"><div class="hd"><div style="flex:1"><div class="mute sm">Buenos días</div><h2>Explora Amaru</h2></div><button class="ib" data-go="contact" aria-label="Avisos">${ic('info')}</button></div>
+ <div class="bd"><div class="hero"><svg viewBox="0 0 340 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="280" cy="50" r="26" fill="#F2A531"/><path d="M0 200V120l70-60 60 45 70-70 80 70 60-40v135z" fill="#1F5A40"/><path d="M0 200v-40l90-35 90 30 100-45 60 25v65z" fill="#2F7A4F"/><path d="M30 190c50-6 30-40 90-40s40 28 100 18 50-36 90-36" fill="none" stroke="#F2A531" stroke-width="4" stroke-dasharray="1 9" stroke-linecap="round"/></svg>
+  <div><span class="open"><i></i>Abierto hoy · 9:00 – 18:00</span><h2 style="font:700 1.45em/1.15 Poppins,sans-serif;margin:12px 0 4px;max-width:10em">Un recorrido de 3 a 4 horas por la ladera</h2><p class="sm" style="margin:0 0 12px;opacity:.9">Lleva calzado cómodo y agua.</p><button class="btn sun" data-go="map">${ic('map')}Abrir mapa</button></div></div>
+  <div class="qa"><button data-go="animals"><span>${ic('paw')}</span>Animales</button><button data-go="visit"><span>${ic('ticket')}</span>Horarios y tarifas</button><button data-go="agenda"><span>${ic('cal')}</span>Actividades</button><button data-go="services"><span>${ic('food')}</span>Servicios</button></div>
+  <h3>Hoy en Amaru <a data-go="agenda">Ver agenda</a></h3>
+  <div class="hs">${AN.filter(a=>/Sáb y dom/.test(a.t)).slice(0,5).map(a=>`<div class="card ev" data-an="${a.id}" tabindex="0"><div class="time">${a.t.split('· ')[1]}</div><b style="display:block;margin:2px 0">${a.n}</b><span class="mute sm">Charla en ${REG[a.r][0]}</span></div>`).join('')}</div>
+  <h3>Recorridos sugeridos <a data-go="agenda">Ver todos</a></h3>
+  ${ROUTES.slice(0,2).map(routeCard).join('')}
+  <h3>Animales destacados <a data-go="animals">Ver catálogo</a></h3>
+  <div class="hs">${AN.slice(0,6).map(a=>`<div class="card an" data-an="${a.id}" style="width:9em" tabindex="0">${animalPh(a)}<b>${a.n}</b><span class="mute sm">${REG[a.r][0]}</span></div>`).join('')}</div>
+ </div></div>`},
+menu:{t:'Más',tab:'menu',r:()=>{const g=(t,rows)=>`<h3>${t}</h3><div class="card" style="padding:2px 14px">${rows.map(([i,b,s,go,x])=>`<div class="li" ${go?`data-go="${go}"`:''} ${x||''} tabindex="0"><span class="lic">${ic(i)}</span><span class="t"><b>${b}</b><span class="mute sm">${s}</span></span>${x&&x.includes('data-sw')?`<span class="sw ${S[x.match(/data-sw="(\w+)"/)[1]]?'on':''}"></span>`:ic('chev')}</div>`).join('')}</div>`;
+ return `<div class="scr" id="s-menu">${hd('Menú',false)}<div class="bd">
+ ${g('Explorar',[['paw','Animales','Catálogo y fichas por especie','animals'],['map','Mapa del bioparque','Zonas, senderos y servicios','map'],['route','Recorridos y actividades','Rutas sugeridas, charlas y eventos','agenda']])}
+ ${g('Tu visita',[['clock','Horarios y tarifas','Precios, recomendaciones y normas','visit'],['food','Servicios','Baños, comida, salud, parqueadero','services'],['heart','Mis favoritos','Animales guardados','animals']])}
+ ${g('Amaru',[['leaf','Sobre el bioparque','Historia, misión y conservación','about'],['phone','Contacto','Teléfonos, redes y cómo llegar','contact']])}
+ ${g('Accesibilidad',[['text','Texto grande','Aumenta el tamaño de letra',null,'data-sw="big"'],['contrast','Alto contraste','Textos y bordes más oscuros',null,'data-sw="hc"'],['globe','Idioma','Español','splash']])}
+ </div></div>`}},
+about:{t:'Sobre Amaru',tab:'menu',r:()=>`<div class="scr" id="s-about">${hd('Sobre el bioparque')}<div class="bd">
+ <div class="hero" style="min-height:150px"><svg viewBox="0 0 340 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M0 150V80l80-50 70 40 80-50 110 70v60z" fill="#1F5A40"/><path d="M40 140c40-30 80 10 120-20s70-10 100-30 50 0 80-10" fill="none" stroke="#F2A531" stroke-width="10" stroke-linecap="round"/><circle cx="336" cy="80" r="9" fill="#F2A531"/></svg><div style="margin-top:70px"><b style="font:700 1.3em Poppins,sans-serif">“Amaru” significa serpiente en kichwa</b></div></div>
+ <p>Amaru es un bioparque y centro de rescate ubicado en una ladera al noreste de Cuenca, en el km 10½ de la autopista Cuenca–Azogues, frente al Hospital del Río. Sus senderos atraviesan bioregiones que representan los Andes, la Amazonía, la Costa y Galápagos, y África.</p>
+ <div class="stats"><div><b>9 ha</b><span>de bosque y senderos</span></div><div><b>2.300</b><span>animales aprox.</span></div><div><b>160</b><span>especies</span></div></div>
+ <h3>Conservación</h3><div class="card"><div class="row"><span class="lic">${ic('heart')}</span><div><b>431 animales rescatados en 2025</b><div class="mute sm">Provienen de decomisos y tenencia ilegal. El 30 % fue rehabilitado y liberado en su hábitat.</div></div></div></div>
+ <h3>Qué encontrarás</h3>${Object.entries(REG).map(([k,v])=>`<div class="li" data-reg="${k}" tabindex="0"><span class="dot" style="background:${v[1]}"></span><span class="t"><b>${v[0]}</b></span>${ic('chev')}</div>`).join('')}
+ <h3>Apoya al bioparque</h3><div class="grid"><button class="btn alt" data-toast="Apadrinamientos: escríbenos al 096 995 6055">Apadrina un animal</button><button class="btn alt" data-toast="Voluntariado local e internacional: contáctanos">Voluntariado</button></div>
+ </div></div>`},
+animals:{t:'Animales',tab:'animals',r:()=>`<div class="scr" id="s-animals">${hd('Animales',false,`<button class="ib" data-go="map" aria-label="Ver en mapa">${ic('map')}</button>`)}<div class="bd">
+ <label class="srch">${ic('search')}<input id="aq" placeholder="Buscar especie" aria-label="Buscar especie" value="${esc(S.q)}"></label>
+ <div class="chips" style="margin-top:10px">${[['all','Todas'],...Object.entries(REG).map(([k,v])=>[k,v[0]])].map(([k,v])=>`<button class="chip ${S.reg===k?'on':''}" data-reg="${k}">${k!=='all'?`<span class="dot" style="background:${REG[k][1]}"></span>`:''}${v}</button>`).join('')}</div>
+ <div id="agrid"></div></div></div>`},
+animal:{t:'Ficha',tab:'animals',r:()=>`<div class="scr" id="s-animal"></div>`},
+visit:{t:'Horarios',tab:'menu',r:()=>`<div class="scr" id="s-visit">${hd('Horarios y tarifas')}<div class="bd">
+ <div class="card" style="background:var(--forest);color:#fff"><div class="row">${ic('clock')}<div style="flex:1"><b style="font:600 1.15em Poppins,sans-serif">Todos los días · 9:00 – 18:00</b><div class="sm" style="opacity:.85">Ingresa antes de las 14:00 para completar el recorrido.</div></div></div></div>
+ <h3>Tarifas</h3><div class="card" style="padding:2px 14px">${[['Adultos (18–64 años)','USD 9,00'],['Adultos mayores (65+)','USD 4,50'],['Niños, estudiantes y personas con discapacidad','Tarifa reducida'],['Grupos escolares','Con reserva']].map(([a,b])=>`<div class="li" style="cursor:default"><span class="t">${a}</span><b style="white-space:nowrap">${b}</b></div>`).join('')}</div>
+ <p class="mute sm">Tarifas de referencia; se actualizan desde el sistema de boletería del bioparque.</p>
+ <h3>Antes de ir</h3><div class="grid">${[['mount','Senderos con pendiente','Recorrido de 3 a 4 h en ladera'],['drop','Lleva agua','Y protector solar'],['sun','Clima cambiante','Lleva abrigo y gorra'],['users','En familia','Hay zonas de descanso']].map(([i,a,b])=>`<div class="card"><span class="lic">${ic(i)}</span><b style="display:block;margin-top:8px">${a}</b><span class="mute sm">${b}</span></div>`).join('')}</div>
+ <h3>Normas del bioparque</h3><div class="card" style="padding:2px 14px">${['No alimentes a los animales','Respeta las barreras y señalética','No uses flash ni hagas ruido fuerte','Camina solo por los senderos marcados','Deposita la basura en los puntos de reciclaje'].map(x=>`<div class="li" style="cursor:default"><span class="lic" style="width:2em;height:2em">${ic('alert')}</span><span class="t">${x}</span></div>`).join('')}</div>
+ <h3>Cómo llegar</h3><div class="card"><b>Autopista Cuenca–Azogues, km 10½</b><div class="mute sm">Ingreso frente al Hospital del Río · a unos 8 km del centro de Cuenca</div><button class="btn alt w" style="margin-top:10px" data-toast="Se abrirá la ruta en tu app de mapas">${ic('car')}Abrir en mapas</button></div>
+ </div></div>`},
+agenda:{t:'Actividades',tab:'agenda',r:()=>`<div class="scr" id="s-agenda">${hd('Actividades y recorridos',false)}<div class="bd">
+ <div class="chips">${['Hoy','Sábado','Domingo','Eventos'].map((d,i)=>`<button class="chip ${i===1?'on':''}" data-day>${d}</button>`).join('')}</div>
+ <h3>Charlas con cuidadores</h3>
+ <div class="card" style="padding:2px 14px">${AN.filter(a=>/Sáb/.test(a.t)).sort((a,b)=>a.t.slice(-5).localeCompare(b.t.slice(-5))).map(a=>`<div class="li" data-an="${a.id}" tabindex="0"><span class="time" style="width:3.2em">${a.t.slice(-5)}</span><span class="t"><b>${a.n}</b><span class="mute sm">${REG[a.r][0]}</span></span><span class="dot" style="background:${REG[a.r][1]}"></span></div>`).join('')}</div>
+ <p class="mute sm">Horarios referenciales; se cargan desde la agenda del bioparque.</p>
+ <h3>Recorridos sugeridos</h3>${ROUTES.map(routeCard).join('')}
+ <h3>Eventos especiales</h3>
+ <div class="card" style="background:#1B2A3A;color:#fff;margin-bottom:10px"><div class="row">${ic('moon')}<div style="flex:1"><b>Safari nocturno</b><div class="sm" style="opacity:.8">Solo en noches de luna llena · recorrido guiado con linternas</div></div></div><button class="btn sun w" style="margin-top:10px" data-toast="Te avisaremos de la próxima luna llena">Recordarme</button></div>
+ <div class="card"><div class="row"><span class="lic">${ic('users')}</span><div style="flex:1"><b>Colonias vacacionales</b><div class="mute sm">Niños de 5 a 12 años · inscripciones al 096 995 6055</div></div></div></div>
+ </div></div>`},
+map:{t:'Mapa',tab:'map',r:()=>`<div class="scr" id="s-map"><div class="mapw" id="mapw">${mapSvg()}</div>
+ <div class="mtop"><label class="srch">${ic('search')}<input id="mq" placeholder="Buscar animal o servicio" aria-label="Buscar en el mapa"></label><div id="mres"></div>
+ <div class="chips">${CATS.map(([k,v])=>`<button class="chip ${S.cat===k?'on':''}" data-cat="${k}">${v}</button>`).join('')}</div></div>
+ <div class="zbtn"><button class="ib" data-z="1" aria-label="Acercar">${ic('plus')}</button><button class="ib" data-z="-1" aria-label="Alejar">${ic('minus')}</button><button class="ib" data-me aria-label="Mi ubicación">${ic('nav')}</button><button class="ib" data-leg aria-label="Leyenda">${ic('layers')}</button></div>
+ <div class="sheet" id="sheet"></div></div>`},
+services:{t:'Servicios',tab:'menu',r:()=>`<div class="scr" id="s-services">${hd('Servicios')}<div class="bd">
+ <p class="mute" style="margin-top:0">Toca un servicio para ubicarlo en el mapa con la ruta desde donde estás.</p>
+ ${[['wc','Baños','3 baterías · baño accesible en el ingreso','wc1','#5B7FB8'],['food','Alimentación','Cafetería del Auditorio y snack del Mirador','cafe','#C98A1C'],['bench','Zonas de descanso','Bancas y sombra a lo largo del sendero','d1','#6E9F2E'],['info','Información','Boletería, guías y objetos perdidos','info1','#2493AE'],['cross','Primeros auxilios','Junto al ingreso · emergencias 911','aux','#C4532F'],['car','Parqueadero','Junto a la autopista Cuenca–Azogues','parq','#3D5A80'],['bag','Tienda de recuerdos','Apoya la conservación','tienda','#2493AE'],['eye','Mirador de Cuenca','Vista panorámica de la ciudad','mir','#6E9F2E']].map(([i,b,s,p,c])=>`<div class="card li" style="margin-bottom:8px;padding:10px 14px" data-poi="${p}" tabindex="0"><span class="lic" style="background:${c};color:#fff">${i==='wc'?'<b style="font-size:.8em">WC</b>':ic(i)}</span><span class="t"><b>${b}</b><span class="mute sm">${s}</span></span>${ic('pin')}</div>`).join('')}
+ <h3>Accesibilidad</h3><div class="card"><div class="row"><span class="lic">${ic('acc')}</span><div class="sm">El bioparque está en una ladera con pendientes. La app señala el tramo de menor pendiente cerca del ingreso y los puntos de descanso. Pide apoyo en Información.</div></div></div>
+ </div></div>`},
+contact:{t:'Contacto',tab:'menu',r:()=>`<div class="scr" id="s-contact">${hd('Contacto')}<div class="bd">
+ <div class="card" style="padding:2px 14px">${[['phone','096 995 6055','Información e inscripciones'],['phone','099 568 1677','Línea alterna'],['phone','099 378 1679','Línea alterna'],['globe','zoobioparqueamaru.com','Sitio web oficial'],['cam','@bioparqueamaru','Instagram'],['users','/zoologicocuenca','Facebook']].map(([i,a,b])=>`<div class="li" data-toast="${a}" tabindex="0"><span class="lic">${ic(i)}</span><span class="t"><b>${a}</b><span class="mute sm">${b}</span></span>${ic('chev')}</div>`).join('')}</div>
+ <h3>Dirección</h3><div class="card"><div class="row"><span class="lic">${ic('pin')}</span><div><b>Autopista Cuenca–Azogues, km 10½</b><div class="mute sm">Frente al Hospital del Río, Cuenca, Ecuador</div></div></div></div>
+ <div class="card" style="margin-top:10px;background:#FBE9E3"><div class="row"><span class="lic" style="background:var(--clay);color:#fff">${ic('alert')}</span><div><b>¿Emergencia en el recorrido?</b><div class="sm">Acude a Primeros auxilios junto al ingreso o llama al 911.</div></div></div></div>
+ <h3>Escríbenos</h3><form class="card" id="cf"><label class="sm mute" for="cm">Tu mensaje o sugerencia</label><textarea id="cm" rows="3" style="width:100%;font:16px Inter,sans-serif;border:1.5px solid var(--line);border-radius:12px;padding:10px;margin:6px 0 10px;resize:none" placeholder="Cuéntanos tu experiencia"></textarea><button class="btn w">Enviar</button></form>
+ <h3>Preguntas frecuentes</h3>${[['¿Cuánto dura el recorrido?','Entre 3 y 4 horas si visitas todas las bioregiones. La Ruta esencial toma cerca de 1,5 horas.'],['¿Puedo ingresar con comida?','Puedes llevar agua. Hay cafetería en el ingreso y snack en el Mirador.'],['¿Es apto para coches de bebé?','Algunos senderos tienen pendiente fuerte; recomendamos portabebés.']].map(([q,a])=>`<details class="card" style="margin-bottom:8px"><summary style="font-weight:600;cursor:pointer">${q}</summary><p class="sm mute" style="margin:8px 0 0">${a}</p></details>`).join('')}
+ </div></div>`}};
+SCREENS.poi={t:'Mapa · punto de interés',tab:'map',alias:'map'};
+
+const ROUTES=[
+{n:'Ruta esencial',t:'1,5 h',k:'1,2 km',lv:'Baja',c:'var(--sun)',d:'Ranario, Amazonía, oso andino y cóndor.'},
+{n:'Ruta completa Amaru',t:'3–4 h',k:'Todo el sendero',lv:'Media-alta',c:'var(--leaf)',d:'Las seis bioregiones y el Mirador de Cuenca.'},
+{n:'Ruta familiar',t:'2 h',k:'1,6 km',lv:'Baja',c:'var(--costa)',d:'Más paradas de descanso y baños cerca.'}];
+function routeCard(r){return `<div class="card" style="margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer" data-route="${r.n}" tabindex="0"><span class="lic" style="background:${r.c};color:#fff">${ic('route')}</span><div style="flex:1"><b>${r.n}</b><div class="mute sm">${r.d}</div><div class="row sm" style="gap:6px;margin-top:6px;flex-wrap:wrap"><span class="badge">${ic('clock')}${r.t}</span><span class="badge">${r.k}</span><span class="badge">Dificultad ${r.lv}</span></div></div></div>`}
+
+/* ---------- MAP ---------- */
+const YOU=[196,428];
+const TRAIL='M178 498 C120 475 84 440 104 404 S62 340 88 304 S160 262 140 214 S88 168 122 140 S226 110 286 100 S318 178 258 228 S330 322 270 372 S214 462 234 500';
+const SHORT='M178 498 C188 452 196 400 186 352 S214 290 236 258 S272 252 280 266';
+function zone(k,d,lx,ly){return `<path class="zone" d="${d}" fill="${REG[k][2]}" stroke="${REG[k][1]}" stroke-width="2" opacity=".95"/><text class="zl" x="${lx}" y="${ly}" text-anchor="middle" fill="${REG[k][1]}">${REG[k][0]}</text>`}
+function mapSvg(){
+ const ctr=[...Array(9)].map((_,i)=>`<path class="ctr" d="M-20 ${70+i*58} C80 ${40+i*58} 180 ${100+i*58} 380 ${50+i*58}" fill="none" stroke="#C3D6AC" stroke-width="1.2"/>`).join('');
+ const pois=SV.map(p=>{const[id,n,c,x,y,icn,col]=p;const g=icn.length<=2?`<text x="${x}" y="${y+3.6}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff" class="pg" style="stroke:none">${icn}</text>`:`<g transform="translate(${x-6.5} ${y-6.5}) scale(.54)" class="pg" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${IC[icn]}</g>`;
+  return `<g class="poi" data-poi="${id}" data-c="${c}" tabindex="0" role="button" aria-label="${n}"><circle class="pc" cx="${x}" cy="${y}" r="11" fill="${col}" stroke="#fff" stroke-width="2"/>${g}</g>`}).join('');
+ const ans=AN.map(a=>`<g class="poi" data-poi="a-${a.id}" data-c="an" tabindex="0" role="button" aria-label="${a.n}"><circle class="pc" cx="${a.x[0]}" cy="${a.x[1]}" r="8.5" fill="#fff" stroke="${REG[a.r][1]}" stroke-width="2.4"/><g transform="translate(${a.x[0]-5.4} ${a.x[1]-5.4}) scale(.45)" class="pg" fill="none" stroke="${REG[a.r][1]}" stroke-width="2.6">${IC.paw}</g></g>`).join('');
+ return `<svg class="m" id="msvg" viewBox="0 0 360 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa ilustrado del bioparque"><g id="mg">
+ <rect class="bgf" x="-200" y="-200" width="760" height="960" fill="#D5E3C2"/>${ctr}
+ <rect class="road" x="-200" y="528" width="760" height="40" fill="#B9B4A6"/><text x="300" y="552" font-size="9" fill="#fff" font-weight="700" text-anchor="middle">Autopista Cuenca – Azogues</text>
+ <rect class="lot" x="26" y="490" width="76" height="34" rx="6" fill="#E8E4DA" stroke="#B9B4A6"/>
+ ${zone('africa','M70 128c10-34 70-44 120-30s30 70-10 82-120 8-110-52z',128,104)}
+ ${zone('andes','M190 214c-6-40 50-60 92-44s44 70 16 96-102 12-108-52z',246,186)}
+ ${zone('avi','M26 270c4-24 48-26 62-6s-2 46-30 44-36-18-32-38z',58,252)}
+ ${zone('amaz','M72 300c0-30 42-42 66-24s14 54-14 60-52-8-52-36z',106,346)}
+ ${zone('costa','M236 360c0-30 60-40 84-16s4 62-30 62-54-18-54-46z',280,344)}
+ ${zone('herp','M74 404c0-26 50-36 78-18s8 52-28 52-50-10-50-34z',112,388)}
+ <path class="zone" d="M140 440c0-18 22-24 44-20s28 30 8 40-52 4-52-20z" fill="#F6E8CC" stroke="#173F2F" stroke-width="2"/><text class="zl" x="140" y="446" text-anchor="end" fill="#173F2F">Auditorio Amaru</text>
+ <path class="trail" d="${TRAIL}" fill="none" stroke="#8B6A3E" stroke-width="7" stroke-linecap="round" opacity=".55"/>
+ <path class="trail" d="${TRAIL}" fill="none" stroke="#F7EBD3" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/>
+ <path class="trail2" d="${SHORT}" fill="none" stroke="#F2A531" stroke-width="3" stroke-dasharray="6 5" stroke-linecap="round"/>
+ <path id="rt" d="" fill="none" stroke="#173F2F" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 7"/>
+ ${ans}${pois}
+ <circle class="you" cx="${YOU[0]}" cy="${YOU[1]}" r="8" fill="#2E7DF6" opacity=".5"/><circle cx="${YOU[0]}" cy="${YOU[1]}" r="7" fill="#2E7DF6" stroke="#fff" stroke-width="3"/>
+ </g></svg>`}
+function poiData(id){if(id.startsWith('a-')){const a=AN.find(x=>'a-'+x.id===id);return{id,n:a.n,c:'an',x:a.x[0],y:a.x[1],d:REG[a.r][0]+' · Charla '+a.t,a}}const p=SV.find(x=>x[0]===id);return{id,n:p[1],c:p[2],x:p[3],y:p[4],d:p[7],col:p[6]}}
+const CATN={an:'Animal',wc:'Baños',food:'Alimentación',rest:'Descanso y miradores',info:'Información y salud',acc:'Accesos'};
+function applyMap(){
+ const g=$('mg');if(!g)return;
+ g.setAttribute('transform',`translate(${S.px} ${S.py}) translate(180 280) scale(${S.z}) translate(-180 -280)`);
+ document.querySelectorAll('.poi').forEach(el=>el.classList.toggle('dim',S.cat!=='all'&&el.dataset.c!==S.cat&&el.dataset.poi!==S.sel));
+ const sh=$('sheet'),rt=$('rt');
+ if(S.legend){sh.innerHTML=`<div class="row" style="justify-content:space-between"><b style="font:600 1.05em Poppins,sans-serif">Leyenda</b><button class="ib" data-leg aria-label="Cerrar">${ic('x')}</button></div><div class="leg" style="margin-top:8px">${[['#173F2F','in','Entrada / salida'],['#3D5A80','P','Parqueadero'],['#5B7FB8','WC','Baños'],['#C98A1C','food','Alimentación'],['#6E9F2E','bench','Descanso / mirador'],['#2493AE','info','Información'],['#C4532F','cross','Primeros auxilios'],['#fff','paw','Animal']].map(([c,i,t])=>`<div><span class="pk" style="background:${c};${c==='#fff'?'box-shadow:inset 0 0 0 2px var(--leaf);color:var(--leaf)':''}">${i.length<=2?i:ic(i)}</span>${t}</div>`).join('')}<div><svg width="28" height="10"><path d="M2 5h24" stroke="#8B6A3E" stroke-width="6" opacity=".55" stroke-linecap="round"/></svg>Sendero principal</div><div><svg width="28" height="10"><path d="M2 5h24" stroke="#F2A531" stroke-width="3" stroke-dasharray="5 4"/></svg>Ruta esencial</div></div>`;rt.setAttribute('d','');return}
+ if(!S.sel){sh.innerHTML=`<div class="row"><span class="lic" style="background:#2E7DF6;color:#fff">${ic('nav')}</span><div style="flex:1"><b>Estás cerca del Auditorio Amaru</b><div class="mute sm">Toca un punto del mapa o usa los filtros</div></div></div><div class="row" style="margin-top:12px;gap:8px"><button class="btn alt" style="flex:1" data-near="wc">Baño más cercano</button><button class="btn" style="flex:1" data-route="Ruta esencial">Iniciar ruta</button></div>`;rt.setAttribute('d','');return}
+ const p=poiData(S.sel);const dx=p.x-YOU[0],dy=p.y-YOU[1];const m=Math.round(Math.hypot(dx,dy)*1.35*.75/10)*10;const min=Math.max(1,Math.round(m/45));
+ rt.setAttribute('d',`M${YOU[0]} ${YOU[1]} Q${YOU[0]+dx*.5+dy*.25} ${YOU[1]+dy*.5-dx*.25} ${p.x} ${p.y}`);
+ sh.innerHTML=`<div class="row"><span class="lic" style="${p.a?`background:${REG[p.a.r][2]}`:`background:${p.col};color:#fff`}">${p.a?`<span style="font-size:1.4em">${p.a.e}</span>`:(p.c==='wc'?'<b style="font-size:.8em">WC</b>':ic(SV.find(x=>x[0]===p.id)[5].length<=2?'car':SV.find(x=>x[0]===p.id)[5]))}</span><div style="flex:1"><span class="mute sm">${CATN[p.c]}</span><b style="display:block;font:600 1.05em Poppins,sans-serif">${p.n}</b></div><button class="ib" data-close aria-label="Cerrar">${ic('x')}</button></div>
+ <p class="sm mute" style="margin:8px 0">${p.d}</p><div class="row sm" style="gap:6px"><span class="badge">${ic('route')}${m} m</span><span class="badge">${ic('clock')}${min} min a pie</span>${p.c==='wc'&&p.id==='wc1'?`<span class="badge">${ic('acc')}Accesible</span>`:''}</div>
+ <div class="row" style="margin-top:12px;gap:8px"><button class="btn" style="flex:1" data-toast="Navegación iniciada: sigue la línea punteada">${ic('nav')}Cómo llegar</button>${p.a?`<button class="btn alt" style="flex:1" data-an="${p.a.id}">Ver ficha</button>`:`<button class="btn alt" style="flex:1" data-toast="Punto guardado">Guardar</button>`}</div>`}
+function selPoi(id){S.sel=id;S.legend=false;const p=poiData(id);S.z=Math.max(S.z,1.5);center(p.x,p.y);applyMap()}
+function center(x,y){S.px=-(x-180)*S.z;S.py=225-280-(y-280)*S.z}
+
+/* ---------- RENDER ---------- */
+function renderAnimals(){const g=$('agrid');if(!g)return;const q=S.q.trim().toLowerCase();const l=AN.filter(a=>(S.reg==='all'||a.r===S.reg)&&(!q||(a.n+a.s).toLowerCase().includes(q)));
+ g.innerHTML=l.length?`<p class="mute sm" style="margin:10px 0 8px">${l.length} especies${S.reg!=='all'?' en '+REG[S.reg][0]:''}</p><div class="grid">${l.map(a=>`<div class="card an" data-an="${a.id}" tabindex="0">${animalPh(a)}<b>${a.n}</b><span class="mute sm">${REG[a.r][0]}</span></div>`).join('')}</div>`:`<div class="card" style="text-align:center;margin-top:16px"><b>Sin resultados</b><p class="mute sm">Prueba con otro nombre o cambia de bioregión.</p></div>`}
+function renderAnimal(){const a=AN.find(x=>x.id===S.an);$('s-animal').innerHTML=`${hd(REG[a.r][0],true,`<button class="ib" data-fav="${a.id}" aria-label="Favorito" style="${S.fav[a.id]?'color:var(--clay)':''}">${ic('heart')}</button>`)}<div class="bd">
+ ${animalPh(a,'13em')}
+ <h2 style="font:700 1.6em/1.1 Poppins,sans-serif;margin:14px 0 2px">${a.n}</h2><div class="mute" style="font-style:italic">${a.s}</div>
+ <div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap"><span class="badge" style="background:${REG[a.r][2]}"><span class="dot" style="background:${REG[a.r][1]}"></span>${REG[a.r][0]}</span><span class="badge ${a.st}">UICN: ${ST[a.st]}</span></div>
+ <div class="stats"><div><b>${a.w}</b><span>Peso</span></div><div><b>${a.d}</b><span>Dieta</span></div><div><b style="font-size:.85em">${a.h}</b><span>Hábitat</span></div></div>
+ <button class="btn alt w" data-audio>${ic('audio')}${S.audio?'Pausar audioguía':'Escuchar audioguía (1:30)'}</button>
+ <h3>Sobre la especie</h3><p style="margin:0">${a.a}</p>
+ <h3>Su historia en Amaru</h3><div class="card"><div class="row"><span class="lic">${ic('leaf')}</span><span class="sm">${a.m}</span></div></div>
+ <h3>Próxima charla</h3><div class="card row"><span class="time">${a.t.includes('·')?a.t.split('· ')[1]:'—'}</span><div style="flex:1"><b>Encuentro con el cuidador</b><div class="mute sm">${a.t.split(' ·')[0]}</div></div><button class="ib" data-toast="Recordatorio creado" aria-label="Recordarme">${ic('cal')}</button></div>
+ <button class="btn w" style="margin-top:14px" data-poi="a-${a.id}">${ic('map')}Ver en el mapa</button>
+ </div>`}
+function go(id,push=true){const def=SCREENS[id];if(!def)return;const real=def.alias||id;if(push&&S.cur!==id)S.hist.push(S.cur);S.cur=id;
+ if(id==='poi'){S.cat='all';selPoi('wc2')}
+ if(id==='map'&&push){S.legend=false}
+ document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id==='s-'+real));
+ if(real==='animal')renderAnimal();if(real==='animals')renderAnimals();if(real==='map')applyMap();
+ const t=SCREENS[id].tab;$('tab').style.display=t?'flex':'none';$('sb').classList.toggle('lt',id==='splash');
+ $('tab').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.go===t));
+ document.querySelectorAll('#list button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+ const bd=document.querySelector('#s-'+real+' .bd');if(bd&&push)bd.scrollTop=0;
+ if(location.hash.slice(1)!==id)try{history.replaceState(null,'','#'+id)}catch(e){}}
+window.amaru={go,S,applyMap,selPoi};
+
+$('screens').innerHTML=Object.entries(SCREENS).filter(([k,v])=>v.r).map(([k,v])=>v.r()).join('');
+$('tab').innerHTML=[['home','home','Inicio'],['animals','paw','Animales'],['map','map','Mapa'],['agenda','cal','Agenda'],['menu','menu','Más']].map(([g,i,t])=>`<button data-go="${g}" data-tab>${ic(i)}${t}</button>`).join('');
+const ORDER=['splash','home','menu','about','animals','animal','visit','agenda','map','poi','services','contact'];
+$('list').innerHTML=ORDER.map((k,i)=>`<button data-s="${k}"><b>${String(i+1).padStart(2,'0')}</b>${SCREENS[k].t}</button>`).join('');
+
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go],[data-back],[data-an],[data-reg],[data-cat],[data-poi],[data-z],[data-leg],[data-close],[data-near],[data-route],[data-toast],[data-fav],[data-audio],[data-sw],[data-lang],[data-day],[data-me],[data-s]');if(!t)return;const d=t.dataset;
+ if(d.s){S.hist=[];go(d.s);return}
+ if(d.tab!==undefined){S.hist=[];go(d.go,false);return}
+ if(d.go){go(d.go);return}
+ if(d.back!==undefined){go(S.hist.pop()||'home',false);return}
+ if(d.fav){S.fav[d.fav]=!S.fav[d.fav];toast(S.fav[d.fav]?'Guardado en favoritos':'Eliminado de favoritos');renderAnimal();return}
+ if(d.audio!==undefined){S.audio=!S.audio;toast(S.audio?'Reproduciendo audioguía':'Audioguía en pausa');renderAnimal();return}
+ if(d.an){S.an=d.an;go('animal');return}
+ if(d.reg){S.reg=d.reg;if(S.cur!=='animals'){go('animals')}else{document.querySelectorAll('#s-animals [data-reg]').forEach(c=>c.classList.toggle('on',c.dataset.reg===d.reg));renderAnimals()}if(S.cur==='animals')document.querySelectorAll('#s-animals [data-reg]').forEach(c=>c.classList.toggle('on',c.dataset.reg===d.reg));return}
+ if(d.cat){S.cat=d.cat;S.sel=null;S.legend=false;document.querySelectorAll('[data-cat]').forEach(c=>c.classList.toggle('on',c.dataset.cat===d.cat));applyMap();return}
+ if(d.poi){if(S.cur!=='map'&&S.cur!=='poi')go('map');selPoi(d.poi);return}
+ if(d.z){S.z=Math.min(3,Math.max(.7,S.z+(+d.z)*.4));applyMap();return}
+ if(d.me!==undefined){S.z=1.6;center(YOU[0],YOU[1]);applyMap();return}
+ if(d.leg!==undefined){S.legend=!S.legend;S.sel=null;applyMap();return}
+ if(d.close!==undefined){S.sel=null;S.z=DZ;S.px=0;S.py=DPY;applyMap();return}
+ if(d.near){S.cat='wc';document.querySelectorAll('[data-cat]').forEach(c=>c.classList.toggle('on',c.dataset.cat==='wc'));selPoi('wc1');return}
+ if(d.route){if(S.cur!=='map')go('map');S.sel=null;S.cat='all';S.z=DZ;S.px=0;S.py=DPY;applyMap();toast(d.route+': sigue la línea '+(d.route==='Ruta esencial'?'naranja':'del sendero principal'));return}
+ if(d.sw){S[d.sw]=!S[d.sw];$('app').classList.toggle(d.sw,S[d.sw]);t.querySelector('.sw').classList.toggle('on',S[d.sw]);return}
+ if(d.lang){document.querySelectorAll('[data-lang]').forEach(c=>{c.classList.toggle('on',c===t);c.style.background=c===t?'':'transparent';c.style.color=c===t?'':'#fff'});if(d.lang==='en')toast('English: full translation in the final version');return}
+ if(d.day!==undefined){document.querySelectorAll('[data-day]').forEach(c=>c.classList.toggle('on',c===t));return}
+ if(d.toast){toast(d.toast)}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[tabindex="0"]'))e.target.click()});
+document.addEventListener('input',e=>{if(e.target.id==='aq'){S.q=e.target.value;renderAnimals()}
+ if(e.target.id==='mq'){const q=e.target.value.trim().toLowerCase();const all=[...AN.map(a=>({id:'a-'+a.id,n:a.n,s:REG[a.r][0]})),...SV.map(p=>({id:p[0],n:p[1],s:CATN[p[2]]}))];const r=q?all.filter(x=>x.n.toLowerCase().includes(q)).slice(0,6):[];
+  $('mres').innerHTML=r.length?`<div class="res">${r.map(x=>`<div data-poi="${x.id}">${ic('pin')}<span><b>${esc(x.n)}</b> <span class="mute sm">${esc(x.s)}</span></span></div>`).join('')}</div>`:(q?'<div class="res"><div>Sin resultados</div></div>':'')}});
+document.addEventListener('click',e=>{if(e.target.closest('#mres [data-poi]')){$('mres').innerHTML='';$('mq').value=''}});
+document.addEventListener('submit',e=>{e.preventDefault();if(e.target.id==='cf'){toast('Gracias. Tu mensaje fue registrado (prototipo).');e.target.reset()}});
+// arrastrar el mapa
+let drag=null;document.addEventListener('pointerdown',e=>{if(e.target.closest('#mapw')&&!e.target.closest('.poi'))drag={x:e.clientX,y:e.clientY,px:S.px,py:S.py}});
+document.addEventListener('pointermove',e=>{if(!drag)return;const sv=$('msvg');const k=360/sv.clientWidth;S.px=drag.px+(e.clientX-drag.x)*k;S.py=drag.py+(e.clientY-drag.y)*k;applyMap()});
+document.addEventListener('pointerup',()=>drag=null);
+$('wt').addEventListener('click',()=>{const on=$('app').classList.toggle('wire');$('wt').setAttribute('aria-pressed',on);$('wt').textContent=on?'Ver diseño visual':'Ver como wireframe'});
+const fromHash=()=>{const h=location.hash.slice(1);go(SCREENS[h]?h:'splash',false)};
+window.addEventListener('hashchange',fromHash);fromHash();
+}
+</script>
+</body>
+</html>
